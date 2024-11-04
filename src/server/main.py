@@ -46,5 +46,13 @@ def get_messages_for_discord():
     return jsonify({'messages': messages}), 200
 
 
+@app.route('/get-messages-for-slack', methods=['GET'])
+def get_messages_for_slack():
+    messages = discord_to_slack_stack.copy()
+    print(messages)
+    discord_to_slack_stack.clear()
+    return jsonify({'messages': messages}), 200
+
+
 if __name__ == '__main__':
     app.run(port=3000, debug=True)

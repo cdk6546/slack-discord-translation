@@ -1,11 +1,13 @@
 import json
 import logging
 import os
+import time
+from threading import Thread
+
 import requests
 from slack_sdk import WebClient
 from dotenv import load_dotenv
 import websocket as w
-
 
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
@@ -16,7 +18,29 @@ client = WebClient(token=bot_token)
 bot_info = client.auth_test()
 bot_user_id = bot_info["user_id"]
 
+
+def check_for_messages(c):
+    while True:
+        try:
+            print("thread check")
+            response = requests.get('http://localhost:3000/get-messages-for-slack')
+            if response.status_code == 200:
+                data = response.json()
+                print(data)
+                for msg in data.get('messages'):
+                    username = msg[0]
+                    content = msg[1]
+                    client.chat_postMessage(channel='#bot', text=content)
+            time.sleep(5)  # Check every 5 seconds
+            print("check")
+        except Exception as e:
+            print(f"Error while checking messages: {e}")
+
+
 if __name__ == "__main__":
+    thread = Thread(target=check_for_messages, args=(client,))
+    thread.start()
+
     try:
         # res = client.chat_postMessage(channel='#all-tristen-bot-test', text="Hello, Slack!")
         response = client.apps_connections_open(app_token=app_token)
@@ -65,4 +89,3 @@ if __name__ == "__main__":
         logging.error(f"Error in WebSocket connection: {e}")
     finally:
         ws.close()
-
