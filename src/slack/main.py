@@ -1,12 +1,11 @@
 import json
 import logging
 import os
-
 import requests
-from websocket import create_connection, WebSocketConnectionClosedException
-
-from dotenv import load_dotenv
 from slack_sdk import WebClient
+from dotenv import load_dotenv
+import websocket as w
+
 
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
@@ -26,11 +25,11 @@ if __name__ == "__main__":
         logging.info(websocket_url)
 
         try:
-            ws = create_connection(websocket_url)
+            ws = w.create_connection(websocket_url)
             logging.info("Connected to WebSocket")
-        except WebSocketConnectionClosedException as e:
+        except w.WebSocketConnectionClosedException as e:
             logging.warning("WebSocket connection closed unexpectedly: reconnecting")
-            ws = create_connection(websocket_url)
+            ws = w.create_connection(websocket_url)
 
         while True:
             message = ws.recv()
@@ -43,13 +42,14 @@ if __name__ == "__main__":
                 t = e.get("type")
                 m = str(e.get("text"))
                 b = str(e.get("user"))
+                u = client.users_info(user=b).get('user').get('real_name')
                 logging.info(b)
                 if b == bot_user_id:
                     logging.info("Ignoring own message")
                     continue
                 elif t == "message":
                     data = {
-                        "username": b,
+                        "username": u,
                         "content": m
                     }
 
