@@ -19,11 +19,16 @@ bot_info = client.auth_test()
 bot_user_id = bot_info["user_id"]
 
 
+# Check for messages from Discord to be mirrored to Slack every 5 seconds
 def check_for_messages():
     while True:
         try:
             print("Checking messages for Slack to send")
+
+            # Send a GET request to retrieve the messages to mirror from Discord to Slack
             response = requests.get('http://localhost:3000/get-messages-for-slack')
+
+            # If the request is successful, we know there is data to process
             if response.status_code == 200:
                 data = response.json()
                 print(data)
@@ -53,36 +58,56 @@ if __name__ == "__main__":
             logging.warning("WebSocket connection closed unexpectedly: reconnecting")
             ws = w.create_connection(websocket_url)
 
+        # Slack client is non-blocking, so we need to put it in a loop
         while True:
+            # Receive the current event from the Slack websocket
             message = ws.recv()
-            logging.info(f"Raw WebSocket message: {message}")
+
+            # Convert the event data to JSON format
             event = json.loads(message)
             logging.info(f"Received event: {event}")
+
+            # Get the payload field from the JSON data
             payload = event.get("payload")
+
+            # If there is a payload, meaning that it is a valid event
             if payload:
+                # Get the event field to get the data from
                 e = payload.get("event")
+
+                # Event type
                 t = e.get("type")
+
+                # Content/text
                 m = str(e.get("text"))
+
+                # User ID
                 b = str(e.get("user"))
+
+                # Get name from User ID
                 u = client.users_info(user=b).get('user').get('real_name')
-                logging.info(b)
+
+                # If it's a message from a bot, aka a previously mirrored message,
+                # it's invalid
                 if b == bot_user_id:
-                    logging.info("Ignoring own message")
                     continue
+
+                # If the event type is a message, we want to process it.
                 elif t == "message":
+
+                    # Put the data into a JSON format
                     data = {
                         "username": u,
                         "content": m
                     }
 
                     try:
+                        # Make a POST request so this message can be mirrored from Slack to Discord
                         response = requests.post('http://localhost:3000/slack-to-discord', json=data)
-                        time.sleep(5)
+                        time.sleep(5)  # Delay 5 seconds between message events
                         print(f"Message sent with status code {response.status_code}")
                     except requests.exceptions.RequestException as e:
                         print(f"Failed to send message: {e}")
-
-                    client.chat_postMessage(channel='#bot', text="Hello, Slack from WebSocket!")
 
     except Exception as e:
         logging.error(f"Error in WebSocket connection: {e}")
