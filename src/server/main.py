@@ -18,8 +18,6 @@ def discord_to_slack():
     data_tuple = (username, content)
     discord_to_slack_stack.append(data_tuple)
 
-    # call slack message method
-
     return {'status': 'success'}
 
 
@@ -28,12 +26,12 @@ def slack_to_discord():
     data = request.get_json()
     username = data['username']
     content = data['content']
-    print(f"Received message from Slack: {username}: {content}")
+    timestamp = datetime.datetime.now().isoformat()  # Generate timestamp
+
+    print(f"Received message from Slack: {username}: {content}: {timestamp}")
 
     data_tuple = (username, content)
     slack_to_discord_stack.append(data_tuple)
-
-    # call discord message method
 
     return {'status': 'success'}
 

@@ -18,7 +18,7 @@ class MyClient(discord.Client):
             return
 
         data = {
-            "username": str(message.author),
+            "username": str(message.author.display_name),
             "content": message.content
         }
 
@@ -39,6 +39,7 @@ class MyClient(discord.Client):
 def check_for_messages(c):
     while True:
         try:
+            print("Checking messages for Discord to send")
             response = requests.get('http://localhost:3000/get-messages-for-discord')
             if response.status_code == 200:
                 data = response.json()
@@ -49,7 +50,6 @@ def check_for_messages(c):
                     channel_id = 804411959743086646
                     c.loop.create_task(client.send_message(content, username, channel_id))
             time.sleep(5)  # Check every 5 seconds
-            print("check")
         except Exception as e:
             print(f"Error while checking messages: {e}")
 
