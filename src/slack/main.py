@@ -17,6 +17,7 @@ client = WebClient(token=bot_token)
 
 bot_info = client.auth_test()
 bot_user_id = bot_info["user_id"]
+slack_channel_name = os.environ["DISCORD_CHANNEL_ID"]
 
 
 # Check for messages from Discord to be mirrored to Slack every 5 seconds
@@ -35,7 +36,7 @@ def check_for_messages():
                 for msg in data.get('messages'):
                     username = msg[0]
                     content = msg[1]
-                    client.chat_postMessage(channel='#bot', text=f"message from {username}: {content}")
+                    client.chat_postMessage(channel=slack_channel_name, text=f"message from {username}: {content}")
             time.sleep(5)  # Check every 5 seconds
         except Exception as e:
             print(f"Error while checking messages: {e}")

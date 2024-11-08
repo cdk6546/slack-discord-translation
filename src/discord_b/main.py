@@ -64,7 +64,7 @@ def check_for_messages(c):
                 for msg in data.get('messages'):
                     username = msg[0]
                     content = msg[1]
-                    channel_id = 804411959743086646
+                    channel_id = os.environ["DISCORD_CHANNEL_ID"]
                     # Queue a task in the client to send this message
                     c.loop.create_task(client.send_message(content, username, channel_id))
             time.sleep(5)  # Check for new messages every 5 seconds
@@ -84,7 +84,7 @@ def initialize_client():
 def run_client(c):
     # Load the .ENV file variables
     load_dotenv()
-    discord_token = os.getenv("DISCORD_BOT_TOKEN")
+    discord_token = os.environ["DISCORD_BOT_TOKEN"]
 
     # Run the client using the bot token
     c.run(discord_token)
